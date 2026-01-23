@@ -6,7 +6,44 @@ import server from "../environment";
 
 export const AuthContext = createContext({});
 
-// Create axios client with default headers
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach((prom) => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
+// Refresh token and retry logic
+const refreshAccessToken = async () => {
+    try {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+            throw new Error("No refresh token available");
+        }
+
+        const response = await axios.post(`${server}/api/v1/users/refresh-token`, {
+            refreshToken,
+        });
+
+        const { token } = response.data;
+        localStorage.setItem("token", token);
+        return token;
+    } catch (error) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/auth";
+        throw error;
+    }
+};
+
+// Create axios client with default headers and interceptors
 const createAuthClient = () => {
     const client = axios.create({
         baseURL: `${server}/api/v1/users`,
@@ -20,6 +57,46 @@ const createAuthClient = () => {
     if (token) {
         client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
+
+    // Response interceptor for automatic token refresh
+    client.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+
+            // Handle 401 Unauthorized errors (expired token)
+            if (error.response?.status === 401 && !originalRequest._retry) {
+                if (isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        failedQueue.push({ resolve, reject });
+                    })
+                        .then((token) => {
+                            originalRequest.headers["Authorization"] = `Bearer ${token}`;
+                            return client(originalRequest);
+                        })
+                        .catch((err) => Promise.reject(err));
+                }
+
+                originalRequest._retry = true;
+                isRefreshing = true;
+
+                try {
+                    const newToken = await refreshAccessToken();
+                    client.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+                    originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+                    processQueue(null, newToken);
+                    return client(originalRequest);
+                } catch (refreshError) {
+                    processQueue(refreshError, null);
+                    return Promise.reject(refreshError);
+                } finally {
+                    isRefreshing = false;
+                }
+            }
+
+            return Promise.reject(error);
+        }
+    );
 
     return client;
 };
@@ -66,10 +143,11 @@ export const AuthProvider = ({ children }) => {
             });
 
             if (request.status === httpStatus.OK) {
-                const { token, user } = request.data;
+                const { token, refreshToken, user } = request.data;
                 
-                // Store token in localStorage
+                // Store tokens in localStorage
                 localStorage.setItem("token", token);
+                localStorage.setItem("refreshToken", refreshToken);
                 
                 // Store user data
                 setUserData(user);
@@ -135,6 +213,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleLogout = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
         setUserData(null);
         setIsAuthenticated(false);
         router("/auth");

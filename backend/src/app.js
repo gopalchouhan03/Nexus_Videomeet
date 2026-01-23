@@ -1,6 +1,5 @@
 import express from "express";
 import { createServer } from "node:http";
-import { Server } from "socket.io";
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
@@ -14,119 +13,129 @@ import logger from "./utils/logger.js";
 
 dotenv.config();
 
+/* -------------------- APP & SERVER -------------------- */
 const app = express();
 const server = createServer(app);
 const io = connectToSocket(server);
 
 app.set("trust proxy", 1);
 
-// Security headers with Helmet
-app.use(helmet());
-
-// CORS Configuration - Whitelist only allowed origins
-const allowedOrigins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:5000",
-    process.env.FRONTEND_URL || "http://localhost:3000",
-];
-
+/* -------------------- HELMET (API SAFE) -------------------- */
 app.use(
-    cors({
-        origin: function (origin, callback) {
-            // Allow requests with no origin (like mobile apps, curl requests)
-            if (!origin) return callback(null, true);
-
-            if (allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                logger.warn("CORS blocked request from origin", { origin });
-                callback(new Error("CORS not allowed for this origin"));
-            }
-        },
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        maxAge: 86400, // 24 hours
+    helmet({
+        contentSecurityPolicy: false,      // ❗ CSP breaks APIs
+        crossOriginResourcePolicy: false,  // ❗ Needed for cross-origin APIs
     })
 );
 
-// Body parser with size limits (prevent large payload attacks)
-app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ limit: "10kb", extended: true }));
+/* -------------------- CORS CONFIG -------------------- */
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    process.env.FRONTEND_URL, // CloudFront frontend URL
+].filter(Boolean);
 
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow non-browser requests (Postman, curl)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        logger.warn("❌ CORS blocked", { origin });
+        callback(new Error("CORS not allowed"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400, // 24 hours
+};
+
+app.use(cors(corsOptions));
+
+/* 🔥 CRITICAL: Explicit preflight handling */
+app.options("*", cors(corsOptions));
+
+/* -------------------- BODY PARSERS -------------------- */
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+/* -------------------- RATE LIMITERS -------------------- */
+
+// General API limiter
 const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     max: 100,
-    message: "Too many requests from this IP, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === "development", // Skip in development
+    skip: (req) =>
+        req.method === "OPTIONS" ||
+        process.env.NODE_ENV === "development",
 });
 
-// Auth rate limiter - stricter: 5 attempts per 15 minutes
+// Auth limiter (login/register)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
-    message: "Too many login attempts, please try again later.",
-    skipSuccessfulRequests: true, // Don't count successful requests
+    skipSuccessfulRequests: true,
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === "development",
+    skip: (req) =>
+        req.method === "OPTIONS" ||
+        process.env.NODE_ENV === "development",
 });
 
-// Apply general limiter to all API routes
-app.use("/api/", generalLimiter);
+/* -------------------- ROUTES -------------------- */
+app.use("/api", generalLimiter);
 
 app.use("/api/v1/users/login", authLimiter);
 app.use("/api/v1/users/register", authLimiter);
 app.use("/api/v1/users", userRoutes);
 
+/* -------------------- ERROR HANDLERS -------------------- */
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.set("port", process.env.PORT || 8000);
+/* -------------------- SERVER START -------------------- */
+const PORT = process.env.PORT || 8000;
 
-const start = async () => {
+const startServer = async () => {
     try {
-        // Connect to MongoDB
-        const connectionDb = await mongoose.connect(
-            process.env.MONGODB_URL
-        );
+        const db = await mongoose.connect(process.env.MONGODB_URL);
 
-        logger.info("✅ MongoDB Connected", {
-            host: connectionDb.connection.host,
-            database: connectionDb.connection.name,
+        logger.info("✅ MongoDB connected", {
+            host: db.connection.host,
+            db: db.connection.name,
         });
 
-        // Start HTTP server
-        server.listen(app.get("port"), () => {
-            logger.info(`✅ Server LISTENING ON PORT ${app.get("port")}`, {
-                environment: process.env.NODE_ENV,
-                corsOrigins: allowedOrigins,
+        server.listen(PORT, () => {
+            logger.info(`✅ Server running on port ${PORT}`, {
+                env: process.env.NODE_ENV,
+                allowedOrigins,
             });
         });
 
-        // Graceful shutdown
+        /* -------------------- GRACEFUL SHUTDOWN -------------------- */
         process.on("SIGTERM", () => {
-            logger.info("SIGTERM received, shutting down gracefully");
+            logger.info("SIGTERM received. Shutting down...");
             server.close(() => {
-                logger.info("Server closed");
                 mongoose.connection.close(false, () => {
-                    logger.info("MongoDB connection closed");
+                    logger.info("MongoDB closed");
                     process.exit(0);
                 });
             });
         });
     } catch (err) {
-        logger.error("❌ Failed to start server", {
-            error: err.message,
+        logger.error("❌ Server startup failed", {
+            message: err.message,
             stack: err.stack,
         });
         process.exit(1);
     }
 };
 
-start();
+startServer();
 
 export { app, server, io };
