@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 import { VideoLayout } from '../components/layouts/index';
 import { VideoGrid } from '../components/video/VideoGrid';
@@ -42,8 +42,25 @@ export default function VideoMeetComponent() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [meetingTimer, setMeetingTimer] = useState('00:00');
 
+  // Initialize media function
+  const initializeMedia = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: videoEnabled,
+        audio: audioEnabled
+      });
+
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      setLocalStream(stream);
+      window.localStream = stream;
+    } catch (error) {
+      alert('Unable to access camera/microphone. Please check permissions.');
+    }
+  }, [videoEnabled, audioEnabled]);
+
   // Initialize media and socket
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const setupMedia = async () => {
       if (!askUsername) {
@@ -68,23 +85,6 @@ export default function VideoMeetComponent() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const initializeMedia = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: videoEnabled,
-        audio: audioEnabled
-      });
-
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-      setLocalStream(stream);
-      window.localStream = stream;
-    } catch (error) {
-      alert('Unable to access camera/microphone. Please check permissions.');
-    }
-  };
 
   const connectToSocket = () => {
     const token = localStorage.getItem('token');

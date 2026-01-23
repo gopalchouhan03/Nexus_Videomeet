@@ -1,6 +1,3 @@
-let IS_PROD = false;
-const server = IS_PROD ?
-    "https://videocall-api.example.com" :
-    "http://localhost:8000"
+const server = process.env.REACT_APP_API_URL;
 
 export default server;

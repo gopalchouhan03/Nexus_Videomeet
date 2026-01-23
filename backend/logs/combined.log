@@ -214,3 +214,8 @@
 {"database":"test","host":"ac-h0hczpc-shard-00-00.9n2tiqs.mongodb.net","level":"info","message":"✅ MongoDB Connected","service":"video-call-api","timestamp":"2026-01-23 14:49:09"}
 {"corsOrigins":["http://localhost:3000","http://localhost:3001","http://localhost:5000","http://localhost:3001"],"environment":"development","level":"info","message":"✅ Server LISTENING ON PORT 8000","service":"video-call-api","timestamp":"2026-01-23 14:49:09"}
 {"ip":"::1","level":"info","message":"User login successful","service":"video-call-api","timestamp":"2026-01-23 14:55:40","userId":"69721fea26efec2c5826bb10","username":"modi"}
+{"database":"test","host":"ac-h0hczpc-shard-00-00.9n2tiqs.mongodb.net","level":"info","message":"✅ MongoDB Connected","service":"video-call-api","timestamp":"2026-01-23 15:06:02"}
+{"corsOrigins":["http://localhost:3000","http://localhost:3001","http://localhost:5000","http://localhost:3001"],"environment":"development","level":"info","message":"✅ Server LISTENING ON PORT 8000","service":"video-call-api","timestamp":"2026-01-23 15:06:02"}
+{"ip":"::1","level":"info","message":"User login successful","service":"video-call-api","timestamp":"2026-01-23 15:21:57","userId":"69721fea26efec2c5826bb10","username":"modi"}
+{"level":"info","message":"User authenticated","service":"video-call-api","timestamp":"2026-01-23 15:22:01","userId":"69721fea26efec2c5826bb10","username":"modi"}
+{"level":"info","meetingCode":"4m6v8e8rrvy0lfw2uhyfn","message":"Meeting added to history","service":"video-call-api","timestamp":"2026-01-23 15:22:01","userId":"69721fea26efec2c5826bb10"}
