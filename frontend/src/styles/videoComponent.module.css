@@ -1,0 +1,300 @@
+.meetVideoContainer {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(
+        135deg,
+        #0F172A 0%,
+        #1A202C 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.meetVideoContainer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.meetUserVideo {
+    position: absolute;
+    bottom: 80px;
+    left: 20px;
+    height: 140px;
+    width: auto;
+    border-radius: 12px;
+    border: 3px solid #3B82F6;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 20;
+    background: #1A202C;
+}
+
+.meetUserVideo:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5);
+    border-color: #8B5CF6;
+}
+
+.buttonContainers {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    background: linear-gradient(
+        to top,
+        rgba(15, 23, 42, 0.9) 0%,
+        rgba(15, 23, 42, 0.5) 100%
+    );
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 30;
+}
+
+.buttonContainers button {
+    background: rgba(59, 130, 246, 0.9) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+.buttonContainers button:hover {
+    background: rgba(139, 92, 246, 0.9) !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+}
+
+.buttonContainers button:active {
+    transform: scale(0.95) !important;
+}
+
+.buttonContainers svg {
+    font-size: 24px !important;
+    color: white !important;
+}
+
+.conferenceView {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 16px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.conferenceView::-webkit-scrollbar {
+    width: 8px;
+}
+
+.conferenceView::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.conferenceView::-webkit-scrollbar-thumb {
+    background: #3B82F6;
+    border-radius: 4px;
+}
+
+.conferenceView::-webkit-scrollbar-thumb:hover {
+    background: #8B5CF6;
+}
+
+.conferenceView video {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    background: #0F172A;
+}
+
+.conferenceView video:hover {
+    border-color: #3B82F6;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    transform: scale(1.02);
+}
+
+.chatRoom {
+    position: fixed;
+    height: 100vh;
+    right: 0;
+    top: 0;
+    background: rgba(26, 32, 44, 0.95);
+    border-left: 2px solid #3B82F6;
+    width: 320px;
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 25;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+}
+
+.chatRoom::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatRoom::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.chatRoom::-webkit-scrollbar-thumb {
+    background: #3B82F6;
+    border-radius: 3px;
+}
+
+.chatRoom::-webkit-scrollbar-thumb:hover {
+    background: #8B5CF6;
+}
+
+/* Responsive Design */
+@media (max-width: 1280px) {
+    .chatRoom {
+        width: 280px;
+    }
+
+    .conferenceView {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    .meetUserVideo {
+        height: 120px;
+    }
+
+    .chatRoom {
+        position: absolute;
+        height: 40vh;
+        width: 100%;
+        right: auto;
+        bottom: 0;
+        left: 0;
+        border-left: none;
+        border-top: 2px solid #3B82F6;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .conferenceView {
+        height: calc(100% - 200px);
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .buttonContainers {
+        bottom: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .meetUserVideo {
+        height: 100px;
+        width: auto;
+        bottom: 200px;
+        left: 10px;
+    }
+
+    .conferenceView {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: calc(100vh - 300px);
+    }
+
+    .conferenceView video {
+        min-height: 200px;
+    }
+
+    .buttonContainers {
+        bottom: 180px;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .buttonContainers button {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+    }
+
+    .buttonContainers svg {
+        font-size: 20px !important;
+    }
+
+    .chatRoom {
+        height: 160px;
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .meetUserVideo {
+        height: 80px;
+        bottom: 150px;
+    }
+
+    .conferenceView {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .conferenceView video {
+        min-height: 160px;
+    }
+
+    .buttonContainers {
+        gap: 10px;
+        padding: 12px;
+        bottom: 130px;
+    }
+
+    .buttonContainers button {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+    }
+
+    .chatRoom {
+        height: 120px;
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+.chatContainer {
+    position: relative;
+    height: 100%;
+}
+
+
+.chattingArea {
+    position: absolute;
+    bottom: 0;
+}

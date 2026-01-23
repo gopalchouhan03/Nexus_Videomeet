@@ -1,0 +1,288 @@
+/* ========================================
+   HOME / DASHBOARD PAGE STYLES
+   ======================================== */
+
+.home-title {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-white);
+  margin: 0 0 var(--spacing-base) 0;
+  line-height: 1.2;
+}
+
+.home-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-2xl) 0;
+  line-height: 1.6;
+}
+
+/* ========== HERO SECTION ========== */
+
+.home-hero {
+  padding: var(--spacing-3xl) 0;
+  margin-bottom: var(--spacing-3xl);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3xl);
+  align-items: center;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.hero-visual {
+  perspective: 1000px;
+}
+
+.video-preview {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-lg);
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 60px rgba(37, 99, 235, 0.1);
+  transform: rotateY(-5deg) rotateX(2deg);
+  transition: transform var(--transition-normal);
+}
+
+.video-preview:hover {
+  transform: rotateY(0deg) rotateX(0deg);
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-base);
+  width: 100%;
+  height: 100%;
+}
+
+.preview-tile {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========== QUICK ACTIONS ========== */
+
+.quick-actions {
+  margin: var(--spacing-3xl) 0;
+}
+
+.quick-actions h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-2xl);
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-base);
+  text-align: center;
+  padding: var(--spacing-2xl) !important;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.action-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.action-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.action-card h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.action-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ========== RECENT MEETINGS ========== */
+
+.recent-meetings {
+  margin-top: var(--spacing-3xl);
+}
+
+.recent-meetings h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.meetings-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-2xl);
+}
+
+.meeting-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) !important;
+  gap: var(--spacing-base);
+  transition: all var(--transition-normal);
+}
+
+.meeting-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-primary) !important;
+}
+
+.meeting-info {
+  flex: 1;
+}
+
+.meeting-code {
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-mono);
+  color: var(--color-primary-light);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xs);
+}
+
+.meeting-date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.meeting-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* ========== JOIN MODAL ========== */
+
+.join-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.modal-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.modal-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  background: rgba(37, 99, 235, 0.05);
+  padding: var(--spacing-base) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  margin: 0;
+  border-left: 3px solid var(--color-primary);
+}
+
+.modal-footer-actions {
+  display: flex;
+  gap: var(--spacing-base);
+  justify-content: flex-end;
+}
+
+/* ========== RESPONSIVE ========== */
+
+@media (max-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+  }
+
+  .home-title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .video-preview {
+    aspect-ratio: auto;
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+
+  .meetings-list {
+    grid-template-columns: 1fr;
+  }
+
+  .home-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .home-subtitle {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (max-width: 480px) {
+  .home-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .actions-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-base);
+  }
+
+  .action-card {
+    padding: var(--spacing-lg) !important;
+  }
+
+  .action-icon {
+    font-size: 32px;
+  }
+
+  .meeting-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meeting-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
