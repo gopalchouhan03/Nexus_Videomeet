@@ -29,29 +29,29 @@ const userScheme = new Schema(
             sparse: true,
             match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         },
-        refreshTokens: { 
-            type: [String], 
-            default: [],
-            select: false // Don't return by default for security
-        },
         createdAt: { 
             type: Date, 
-            default: Date.now 
+            default: Date.now,
+            index: true
         },
         lastLogin: {
             type: Date,
-            default: null
+            default: null,
+            index: true
         },
         isActive: {
             type: Boolean,
-            default: true
+            default: true,
+            index: true
         }
     },
     { timestamps: true } // Adds createdAt and updatedAt automatically
 );
 
-// Index for faster lookups (username is already indexed via unique: true)
-userScheme.index({ createdAt: -1 });
+// Indexes for faster lookups
+userScheme.index({ username: 1 });
+userScheme.index({ email: 1 });
+userScheme.index({ isActive: 1 });
 
 const User = mongoose.model("User", userScheme);
 

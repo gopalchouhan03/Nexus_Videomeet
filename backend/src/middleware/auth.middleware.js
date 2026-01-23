@@ -1,21 +1,32 @@
-import jwt from "jsonwebtoken";
 import logger from "../utils/logger.js";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
+import { verifyAccessToken } from "../utils/token.util.js";
 
 /**
- * Authentication Middleware
- * Verifies JWT token from Authorization header
- * Attaches decoded user info to req.user
- *
+ * Authentication Middleware (ZERO FAILURE)
+ * 
+ * Responsibilities:
+ * - Extract JWT from Authorization header
+ * - Validate format (Bearer <token>)
+ * - Verify token signature and expiration
+ * - Attach decoded user to req.user
+ * - Return structured errors on failure
+ * 
+ * Design:
+ * - Never throws unhandled errors
+ * - Always calls next() on success
+ * - Returns JSON errors on failure
+ * - Logs all authentication attempts
+ * 
  * Usage: router.get("/protected", authMiddleware, controllerFunction)
  */
 export const authMiddleware = (req, res, next) => {
     try {
-        // Extract token from Authorization header (Bearer <token>)
+        // Extract Authorization header
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            logger.warn("Missing or invalid Authorization header", {
+
+        // Step 1: Check if header exists
+        if (!authHeader) {
+            logger.warn("Authentication token missing", {
                 path: req.path,
                 method: req.method,
                 ip: req.ip,
@@ -23,50 +34,93 @@ export const authMiddleware = (req, res, next) => {
 
             return res.status(401).json({
                 code: "NO_TOKEN",
-                message: "No authentication token provided",
+                message: "Authentication token missing",
             });
         }
 
-        const token = authHeader.split("Bearer ")[1];
+        // Step 2: Validate Bearer format
+        if (!authHeader.startsWith("Bearer ")) {
+            logger.warn("Invalid authorization header format", {
+                path: req.path,
+                method: req.method,
+                ip: req.ip,
+                headerStart: authHeader.substring(0, 20),
+            });
 
-        // Verify JWT token
+            return res.status(401).json({
+                code: "INVALID_HEADER_FORMAT",
+                message: "Invalid authorization header",
+            });
+        }
+
+        // Step 3: Extract token
+        const token = authHeader.slice(7); // Remove "Bearer " prefix
+
+        if (!token || token.trim() === "") {
+            logger.warn("Empty token in authorization header", {
+                path: req.path,
+                method: req.method,
+                ip: req.ip,
+            });
+
+            return res.status(401).json({
+                code: "EMPTY_TOKEN",
+                message: "Invalid authorization header",
+            });
+        }
+
+        // Step 4: Verify token using centralized utility
         try {
-            const decoded = jwt.verify(token, JWT_SECRET);
+            const decoded = verifyAccessToken(token);
 
-            // Attach user info to request
-            req.user = decoded;
-            logger.info("User authenticated", { userId: decoded.userId, username: decoded.username });
-            next();
-        } catch (verifyError) {
-            if (verifyError.name === "TokenExpiredError") {
-                logger.warn("Token expired", { path: req.path });
+            // Step 5: Attach user to request
+            req.user = {
+                userId: decoded.userId,
+                username: decoded.username,
+                name: decoded.name,
+                iat: decoded.iat,
+                exp: decoded.exp,
+            };
 
-                return res.status(401).json({
-                    code: "TOKEN_EXPIRED",
-                    message: "Token has expired. Please login again.",
-                });
-            }
+            logger.debug("User authenticated", {
+                userId: decoded.userId,
+                username: decoded.username,
+                path: req.path,
+            });
 
-            if (verifyError.name === "JsonWebTokenError") {
-                logger.warn("Invalid token", { 
-                    path: req.path, 
-                    error: verifyError.message,
-                    tokenLength: token ? token.length : 0
-                });
+            // Success: proceed to next middleware
+            return next();
+        } catch (tokenError) {
+            // Token verification failed
+            const statusCode = tokenError.statusCode || 401;
+            const code = tokenError.code || "TOKEN_VERIFICATION_ERROR";
+            const message = tokenError.message || "Invalid authentication token";
 
-                return res.status(401).json({
-                    code: "INVALID_TOKEN",
-                    message: "Invalid authentication token. Please login again.",
-                });
-            }
+            logger.warn("Token verification failed", {
+                code,
+                message,
+                path: req.path,
+                method: req.method,
+                ip: req.ip,
+            });
 
-            throw verifyError;
+            return res.status(statusCode).json({
+                code,
+                message,
+            });
         }
     } catch (error) {
-        logger.error("Auth middleware error", { error: error.message });
+        // Unexpected error in middleware itself
+        logger.error("Auth middleware error", {
+            error: error.message,
+            stack: error.stack,
+            path: req.path,
+            method: req.method,
+            ip: req.ip,
+        });
 
         return res.status(500).json({
-            code: "SERVER_ERROR",
+            code: "AUTH_MIDDLEWARE_ERROR",
             message: "Authentication error",
         });
     }
