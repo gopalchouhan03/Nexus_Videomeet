@@ -54,9 +54,9 @@ export const authMiddleware = (req, res, next) => {
                     tokenLength: token ? token.length : 0
                 });
 
-                return res.status(403).json({
+                return res.status(401).json({
                     code: "INVALID_TOKEN",
-                    message: "Invalid authentication token",
+                    message: "Invalid authentication token. Please login again.",
                 });
             }
 
