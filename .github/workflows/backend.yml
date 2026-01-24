@@ -58,16 +58,16 @@ jobs:
             --exclude node_modules \
             --exclude .git \
             --exclude logs \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+            --exclude .ssh \
+            --exclude .pm2 \
+            --exclude .cache \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
             backend/ \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_PATH }}
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_PATH }}/
 
-          ssh -i ~/.ssh/deploy_key \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-              cd ${{ secrets.EC2_APP_PATH }}
-              npm ci --omit=dev
-              pm2 restart all || pm2 start index.js --name backend
-          EOF
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "cd ${{ secrets.EC2_APP_PATH }} && npm ci --omit=dev && pm2 restart all || pm2 start src/app.js --name backend"
 
       - name: Deployment status
         if: always()
