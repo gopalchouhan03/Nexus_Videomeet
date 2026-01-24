@@ -53,8 +53,12 @@ jobs:
 
       - name: Deploy backend to EC2
         run: |
+          # Ensure app directory exists
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "mkdir -p ${{ secrets.EC2_APP_PATH }}"
+          
           rsync -avz \
-            --delete \
             --exclude node_modules \
             --exclude .git \
             --exclude logs \
