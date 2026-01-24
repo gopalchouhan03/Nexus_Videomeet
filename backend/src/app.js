@@ -31,7 +31,7 @@ app.use(
 /* -------------------- CORS CONFIG -------------------- */
 const allowedOrigins = [
     "http://localhost:3000",
-    "http://localhost:3001",
+    "https://d2curibwkm8k2v.cloudfront.net",
     process.env.FRONTEND_URL, // CloudFront frontend URL
 ].filter(Boolean);
 
