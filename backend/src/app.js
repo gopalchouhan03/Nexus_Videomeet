@@ -94,6 +94,26 @@ app.use("/api/v1/users/login", authLimiter);
 app.use("/api/v1/users/register", authLimiter);
 app.use("/api/v1/users", userRoutes);
 
+/* -------------------- DEBUG ENDPOINTS -------------------- */
+// Temporary: Check environment variables (REMOVE IN PRODUCTION)
+app.get("/debug/env", (req, res) => {
+    const isProd = process.env.NODE_ENV === "production";
+    if (isProd) {
+        return res.status(403).json({ message: "Not available in production" });
+    }
+    
+    res.json({
+        NODE_ENV: process.env.NODE_ENV,
+        JWT_SECRET_exists: !!process.env.JWT_SECRET,
+        JWT_SECRET_length: process.env.JWT_SECRET?.length || 0,
+        JWT_REFRESH_SECRET_exists: !!process.env.JWT_REFRESH_SECRET,
+        JWT_REFRESH_SECRET_length: process.env.JWT_REFRESH_SECRET?.length || 0,
+        MONGODB_URL_exists: !!process.env.MONGODB_URL,
+        FRONTEND_URL: process.env.FRONTEND_URL,
+        PORT: process.env.PORT,
+    });
+});
+
 /* -------------------- ERROR HANDLERS -------------------- */
 app.use(notFoundHandler);
 app.use(errorHandler);

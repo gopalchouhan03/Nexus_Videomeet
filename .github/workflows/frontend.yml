@@ -1,0 +1,91 @@
+name: Deploy Frontend to S3 & CloudFront
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: frontend
+        run: npm run lint --if-present
+
+      - name: Run tests
+        working-directory: frontend
+        run: npm test --if-present --watchAll=false
+
+      - name: Build React app
+        working-directory: frontend
+        run: npm run build
+        env:
+          CI: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        run: |
+          aws s3 sync frontend/build/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+            --delete \
+            --cache-control "public, max-age=3600" \
+            --exclude "index.html" \
+            --exclude ".map" \
+            --region ${{ secrets.AWS_REGION }}
+          
+          # Upload index.html with no-cache for index
+          aws s3 cp frontend/build/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --content-type "text/html" \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Verify deployment
+        run: |
+          CLOUDFRONT_URL="https://${{ secrets.CLOUDFRONT_DOMAIN }}"
+          echo "Frontend deployed to: $CLOUDFRONT_URL"
+          
+          # Wait for invalidation to complete (optional)
+          sleep 10
+          
+          # Simple health check
+          curl -s -I $CLOUDFRONT_URL | head -1
+
+      - name: Notify deployment
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const message = `Frontend deployment ${status}`;
+            console.log(message);
