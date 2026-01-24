@@ -39,6 +39,7 @@ jobs:
         run: npm run build
         env:
           CI: true
+          REACT_APP_API_URL: https://your-backend-domain.com
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
