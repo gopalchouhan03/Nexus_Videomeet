@@ -50,7 +50,7 @@
   position: relative;
   transition: color var(--transition-fast);
   border-bottom: 2px solid transparent;
-  margin-bottom: calc(-var(--spacing-base) - 1px);
+  margin-bottom: calc(1px - var(--spacing-base));
 }
 
 .tab-button:hover {
