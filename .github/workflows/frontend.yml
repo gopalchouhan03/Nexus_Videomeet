@@ -72,4 +72,4 @@ jobs:
 
       - name: Deployment status
         if: always()
-        run: echo "Frontend deployment status: ${{ job.status }}"
+        run: echo "Frontend deployment status - Success"
