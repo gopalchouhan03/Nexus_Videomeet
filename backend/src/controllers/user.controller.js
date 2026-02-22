@@ -94,14 +94,13 @@ const login = asyncHandler(async (req, res) => {
     return res.status(httpStatus.OK).json({
         success: true,
         message: "Login successful",
-        data: {
-            accessToken,
-            user: {
-                id: user._id,
-                username: user.username,
-                name: user.name,
-                email: user.email,
-            },
+        token: accessToken,
+        refreshToken: refreshToken,
+        user: {
+            id: user._id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
         },
     });
 });
@@ -455,13 +454,11 @@ const refreshTokenController = asyncHandler(async (req, res) => {
     return res.status(httpStatus.OK).json({
         success: true,
         message: "Token refreshed",
-        data: {
-            accessToken: newAccessToken,
-            user: {
-                id: user._id,
-                username: user.username,
-                name: user.name,
-            },
+        token: newAccessToken,
+        user: {
+            id: user._id,
+            username: user.username,
+            name: user.name,
         },
     });
 });
